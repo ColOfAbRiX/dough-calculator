@@ -1,8 +1,14 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 
 from argparse import ArgumentParser
-import argparse
 import json
+import sys
+
+try:
+    import yaml
+except ImportError:
+    print("You need to install pyyaml using \"pip3 install -y pyyaml\"")
+    sys.exit(1)
 
 parser = ArgumentParser()
 parser.add_argument(
@@ -63,7 +69,8 @@ args = parser.parse_args()
 # Load profile from file
 if args.profile is not None:
     with open(args.profile, mode='r') as profile_file:
-        profile_data = json.load(profile_file)
+        profile_data = yaml.safe_load(profile_file)
+
     cmdline_options = args.__dict__
     args.__dict__.update(profile_data)
     args.__dict__.update(cmdline_options)
