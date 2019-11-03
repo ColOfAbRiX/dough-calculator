@@ -9,43 +9,7 @@ parser.add_argument(
     '--people',
     default=1,
     type=int,
-    help="The number of people"
-)
-parser.add_argument(
-    '--flour',
-    default=150,
-    type=int,
-    help="The quantity of flour in grams. Default value: 150g"
-)
-parser.add_argument(
-    '--hydration',
-    default=0.55,
-    type=float,
-    help="The hydration in baker's percentage. Default value: 0.55"
-)
-parser.add_argument(
-    '--fats',
-    default=0.0,
-    type=float,
-    help="The amount of fats, in baker's percentage. Default value: 0g"
-)
-parser.add_argument(
-    '--salt',
-    default=0.02,
-    type=float,
-    help="The amount of salt, in baker's percentage: Default value: 0.2"
-)
-parser.add_argument(
-    '--sourdough',
-    default=0.25,
-    type=float,
-    help="The amount of sourdough, in baker's percentage. Default value: 0.25"
-)
-parser.add_argument(
-    '--sourdough-hydration',
-    default=0.5,
-    type=float,
-    help="The hydration of the sourdough. Default value: 0.50"
+    help="The number of people, used to multiply all other ingredients"
 )
 parser.add_argument(
     '--portions',
@@ -54,9 +18,45 @@ parser.add_argument(
     help="The number of portion to divide the dough in. Default value: 1 portion"
 )
 parser.add_argument(
+    '--flour',
+    default=150,
+    type=int,
+    help="The quantity of flour, in grams, for one person. Default value: 150g"
+)
+parser.add_argument(
+    '--hydration',
+    default=0.55,
+    type=float,
+    help="The hydration in baker's percentage, for one person. Default value: 0.55"
+)
+parser.add_argument(
+    '--fats',
+    default=0.0,
+    type=float,
+    help="The amount of fats, in baker's percentage, for one person. Default value: 0.0"
+)
+parser.add_argument(
+    '--salt',
+    default=0.02,
+    type=float,
+    help="The amount of salt, in baker's percentage, for one person: Default value: 0.2"
+)
+parser.add_argument(
+    '--sourdough',
+    default=0.25,
+    type=float,
+    help="The amount of sourdough, in baker's percentage, for one person. Default value: 0.25"
+)
+parser.add_argument(
+    '--sourdough-hydration',
+    default=0.5,
+    type=float,
+    help="The hydration of the sourdough. Default value: 0.50"
+)
+parser.add_argument(
     '--profile',
     default=None,
-    help="The file in JSON format containing a profile to load"
+    help="The file, in JSON format containing, a baking profile to use"
 )
 args = parser.parse_args()
 
@@ -87,52 +87,53 @@ portion_weight = total_weight / float(args.portions)
 # Estimate the rising time of the dough compared to the sourdough
 rising_multiplier = 0.5 / args.sourdough if args.sourdough > 0.0 else 0.0
 
+data = {
+    "conf_people": args.people,
+    "conf_portions": args.portions,
+    "single_flour": args.flour,
+    "single_hydration": args.hydration * 100,
+    "single_sourdough": args.sourdough * 100,
+    "single_sourdough_hydration": args.sourdough_hydration * 100,
+    "single_salt": args.salt * 100,
+    "single_fats": args.fats * 100,
+    "total_flour": round(flour),
+    "total_water": round(water),
+    "total_sourdough": round(sourdough),
+    "total_fats": round(fats),
+    "total_salt": round(salt, 1),
+    "total_weight": total_weight,
+    "portion_weight": round(portion_weight),
+    "rising_multiplier": round(rising_multiplier, 2),
+}
+
 # Display result
 print("""
   ~  Fab & Claire's Baker Calculator  ~
 
-Number of people: {0}
+Number of people..............: {conf_people}
+Number of portions............: {conf_portions}
 
 Selected quantities for one person:
 
-  Total flour.................: {1:.0f}g
-  Hydration...................: {2:.0f}%
-  Sourdough...................: {3:.0f}%
-  SD hydration................: {4:.0f}%
-  Salt........................: {5:.0f}%
-  Fats........................: {6:.0f}%
+  Flour.......................: {single_flour:.0f}g
+  Hydration...................: {single_hydration:.0f}%
+  Sourdough...................: {single_sourdough:.0f}%
+  SD hydration................: {single_hydration:.0f}%
+  Salt........................: {single_salt:.1f}%
+  Fats........................: {single_fats:.0f}%
 
-Total amounts for {0} person(s):
+Total amounts for {conf_people} person(s):
 
-  Flour.......................: {7:.0f}g
-  Water.......................: {8:.0f}g
-  Sourdough...................: {9:.0f}g
-  Fats........................: {10:.0f}g
-  Salt........................: {11:.1f}g
+  Flour.......................: {total_flour:.0f}g
+  Water.......................: {total_water:.0f}g
+  Sourdough...................: {total_sourdough:.0f}g
+  Fats........................: {total_fats:.0f}g
+  Salt........................: {total_salt:.1f}g
 
-Other infomration:
+Other information:
 
-  Total weight................: {12:.0f}g
-  Rising multiplier...........: {13:.1f}x""".format(
-    args.people,
-    args.flour,
-    args.hydration * 100,
-    args.sourdough * 100,
-    args.sourdough_hydration * 100,
-    args.salt * 100,
-    args.fats * 100,
-    round(flour),
-    round(water),
-    round(sourdough),
-    round(fats),
-    round(salt, 1),
-    total_weight,
-    round(rising_multiplier, 2)
-))
-
-if args.portions > 1:
-    print("""  Portion weight..............: {0:.0f}g""".format(
-        round(portion_weight)
-    ))
+  Total weight................: {total_weight:.0f}g
+  Portion weight..............: {portion_weight:.0f}g
+  Rising multiplier...........: {rising_multiplier:.1f}x""".format(**data))
 
 print("\nENJOY YOUR DOUGH!")
