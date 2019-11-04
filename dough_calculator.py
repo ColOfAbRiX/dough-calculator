@@ -1,14 +1,24 @@
 #!/usr/bin/env python3
 
 from argparse import ArgumentParser
-import json
+from json import load as json_load
 import sys
 
 try:
-    import yaml
+    # pip3 install pyyaml
+    from yaml import safe_load as yaml_load
+    __yaml__ = True
 except ImportError:
-    print("You need to install pyyaml using \"pip3 install -y pyyaml\"")
-    sys.exit(1)
+    __yaml__ = False
+
+try:
+    # pip3 install argcomplete
+    # eval "$(register-python-argcomplete ./dough_calculator.py)"
+    import argcomplete
+    __argcomplete__ = True
+except ImportError:
+    __argcomplete__ = False
+
 
 parser = ArgumentParser(description="Fab & Claire's Baker Calculator")
 parser.add_argument(
@@ -71,19 +81,28 @@ parser.add_argument(
 parser.add_argument(
     '--profile',
     default=None,
-    help="The file, in JSON format containing, a baking profile to use. The settings in the profile will override the command line arguments"
+    help="The file, in {0} format containing, a baking profile to use. The settings in the profile will override the command line arguments".format(
+        "YAML" if __yaml__ else "JSON"
+    )
 )
 parser.add_argument(
     '--no-sourdough-correction',
     action='store_true',
     help="When specified the calculations will not take into account the sourdough contribution to flour and water"
 )
+
+
+if __argcomplete__:
+    argcomplete.autocomplete(parser)
 args = parser.parse_args()
 
 # Load profile from file
 if args.profile is not None:
     with open(args.profile, mode='r') as profile_file:
-        profile_data = yaml.safe_load(profile_file)
+        if __yaml__:
+            profile_data = yaml_load(profile_file)
+        else:
+            profile_data = json_load(profile_file)
 
     cmdline_options = args.__dict__
     args.__dict__.update(profile_data)
