@@ -10,7 +10,7 @@ except ImportError:
     print("You need to install pyyaml using \"pip3 install -y pyyaml\"")
     sys.exit(1)
 
-parser = ArgumentParser()
+parser = ArgumentParser(description="Fab & Claire's Baker Calculator")
 parser.add_argument(
     '--people',
     default=1,
@@ -23,17 +23,25 @@ parser.add_argument(
     type=int,
     help="The number of portion to divide the dough in. Default value: 1 portion"
 )
+
 parser.add_argument(
     '--flour',
-    default=150,
+    default=100,
     type=int,
-    help="The quantity of flour, in grams, for one person. Default value: 150g"
+    help="The quantity of flour, in grams, for one person. Default value: 100g"
 )
-parser.add_argument(
+water_group = parser.add_mutually_exclusive_group()
+water_group.add_argument(
     '--hydration',
     default=0.55,
     type=float,
-    help="The hydration in baker's percentage, for one person. Default value: 0.55"
+    help="The hydration in baker's percentage, for one person. This option cannot be used together with --hydration. Default value: 0.55"
+)
+water_group.add_argument(
+    '--water',
+    default=None,
+    type=int,
+    help="The amount of water to use in the recipe, for one person. This option cannot be used together with --hydration. Default value: 55"
 )
 parser.add_argument(
     '--fats',
@@ -43,9 +51,9 @@ parser.add_argument(
 )
 parser.add_argument(
     '--salt',
-    default=0.02,
+    default=0.015,
     type=float,
-    help="The amount of salt, in baker's percentage, for one person: Default value: 0.2"
+    help="The amount of salt, in baker's percentage, for one person. Default value: 0.015"
 )
 parser.add_argument(
     '--sourdough',
@@ -57,12 +65,18 @@ parser.add_argument(
     '--sourdough-hydration',
     default=0.5,
     type=float,
-    help="The hydration of the sourdough. Default value: 0.50"
+    help="The hydration of the sourdough itself. Default value: 0.50"
 )
+
 parser.add_argument(
     '--profile',
     default=None,
-    help="The file, in JSON format containing, a baking profile to use"
+    help="The file, in JSON format containing, a baking profile to use. The settings in the profile will override the command line arguments"
+)
+parser.add_argument(
+    '--no-sourdough-correction',
+    action='store_true',
+    help="When specified the calculations will not take into account the sourdough contribution to flour and water"
 )
 args = parser.parse_args()
 
@@ -78,9 +92,20 @@ if args.profile is not None:
 # Calculates the quantity for each ingredient
 flour_total = args.flour * args.people
 sourdough = flour_total * args.sourdough
-flour = flour_total / (1 + args.sourdough * (1.0 - args.sourdough_hydration))
-water = flour_total * args.hydration - sourdough * args.sourdough_hydration
 salt = flour_total * args.salt
+flour = flour_total
+hydration = args.hydration if args.water is None else args.water / flour_total
+water = flour * hydration
+
+if hydration < 0.3:
+    print("Hydration is too low for any sensible baking. Hydration must alway be greater than 30%")
+    sys.exit(1)
+
+# Take into account the flour and water contribution from the sourdough
+if not args.no_sourdough_correction:
+    flour /= (1 + args.sourdough * (1.0 - args.sourdough_hydration))
+    water -= sourdough * args.sourdough_hydration
+
 # On effects of fats on hydration:
 #   http://www.thefreshloaf.com/node/30743/where-does-oilhoney-and-sugar-fit-hydration-formulas
 fats = flour_total * args.fats
@@ -97,18 +122,21 @@ rising_multiplier = 0.5 / args.sourdough if args.sourdough > 0.0 else 0.0
 data = {
     "conf_people": args.people,
     "conf_portions": args.portions,
+
     "single_flour": args.flour,
-    "single_hydration": args.hydration * 100,
+    "single_hydration": hydration * 100,
     "single_sourdough": args.sourdough * 100,
     "single_sourdough_hydration": args.sourdough_hydration * 100,
     "single_salt": args.salt * 100,
     "single_fats": args.fats * 100,
+
     "total_flour": round(flour),
     "total_water": round(water),
     "total_sourdough": round(sourdough),
     "total_fats": round(fats),
     "total_salt": round(salt, 1),
     "total_weight": total_weight,
+
     "portion_weight": round(portion_weight),
     "rising_multiplier": round(rising_multiplier, 2),
 }
