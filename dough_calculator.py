@@ -2,6 +2,7 @@
 
 from argparse import ArgumentParser
 from json import load as json_load
+from types import SimpleNamespace
 import sys
 
 try:
@@ -23,66 +24,56 @@ except ImportError:
 parser = ArgumentParser(description="Fab & Claire's Baker Calculator")
 parser.add_argument(
     '--people',
-    default=1,
     type=int,
     help="The number of people, used to multiply all other ingredients"
 )
 parser.add_argument(
     '--portions',
-    default=1,
     type=int,
     help="The number of portion to divide the dough in. Default value: 1 portion"
 )
 
 parser.add_argument(
     '--flour',
-    default=100,
     type=int,
     help="The quantity of flour, in grams, for one person. Default value: 100g"
 )
 water_group = parser.add_mutually_exclusive_group()
 water_group.add_argument(
     '--hydration',
-    default=0.55,
     type=float,
     help=("The hydration in baker's percentage, for one person. This option cannot be used together"
           " with --hydration. Default value: 0.55")
 )
 water_group.add_argument(
     '--water',
-    default=None,
     type=int,
     help=("The amount of water to use in the recipe, for one person. This option cannot be used "
           "together with --hydration. Default value: 55")
 )
 parser.add_argument(
     '--fats',
-    default=0.0,
     type=float,
     help="The amount of fats, in baker's percentage, for one person. Default value: 0.0"
 )
 parser.add_argument(
     '--salt',
-    default=0.015,
     type=float,
     help="The amount of salt, in baker's percentage, for one person. Default value: 0.015"
 )
 parser.add_argument(
     '--sourdough',
-    default=0.25,
     type=float,
     help="The amount of sourdough, in baker's percentage, for one person. Default value: 0.25"
 )
 parser.add_argument(
     '--sourdough-hydration',
-    default=0.5,
     type=float,
     help="The hydration of the sourdough itself. Default value: 0.50"
 )
 
 parser.add_argument(
     '--profile',
-    default=None,
     help=("The file, in {0} format containing, a baking profile to use. The settings in the profile "
           "will override the command line arguments").format("YAML" if __yaml__ else "JSON")
 )
@@ -93,22 +84,50 @@ parser.add_argument(
           "flour and water")
 )
 
-
 if __argcomplete__:
     argcomplete.autocomplete(parser)
 args = parser.parse_args()
+
+# Default configuration values
+default_settings = {
+    'people': 1,
+    'portions': 1,
+    'flour': 100,
+    'hydration': 0.55,
+    'water': None,
+    'fats': 0.0,
+    'salt': 0.015,
+    'sourdough': 0.25,
+    'sourdough_hydration': 0.5,
+    'profile': None,
+    'no_sourdough_correction': False,
+}
+
+# Holds the final configuration
+final_settings = default_settings.copy()
 
 # Load profile from file
 if args.profile is not None:
     with open(args.profile, mode='r') as profile_file:
         if __yaml__:
-            profile_data = yaml_load(profile_file)
+            profile_settings = yaml_load(profile_file)
         else:
-            profile_data = json_load(profile_file)
+            profile_settings = json_load(profile_file)
 
-    cmdline_options = args.__dict__
-    args.__dict__.update(profile_data)
-    args.__dict__.update(cmdline_options)
+    # Update final settings using profile settings
+    final_settings.update(profile_settings)
+
+# Settings from the command line (cleaned of None values)
+cmdline_settings = {
+    key: value
+    for key, value in vars(args).items() if value is not None
+}
+
+# Update final settings using command line settings
+final_settings.update(cmdline_settings)
+
+# Convert back final settings in a more comfy object
+args = SimpleNamespace(**final_settings)
 
 # Calculates the quantity for each ingredient
 flour_total = args.flour * args.people
