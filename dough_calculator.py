@@ -45,13 +45,15 @@ water_group.add_argument(
     '--hydration',
     default=0.55,
     type=float,
-    help="The hydration in baker's percentage, for one person. This option cannot be used together with --hydration. Default value: 0.55"
+    help=("The hydration in baker's percentage, for one person. This option cannot be used together"
+          " with --hydration. Default value: 0.55")
 )
 water_group.add_argument(
     '--water',
     default=None,
     type=int,
-    help="The amount of water to use in the recipe, for one person. This option cannot be used together with --hydration. Default value: 55"
+    help=("The amount of water to use in the recipe, for one person. This option cannot be used "
+          "together with --hydration. Default value: 55")
 )
 parser.add_argument(
     '--fats',
@@ -81,14 +83,14 @@ parser.add_argument(
 parser.add_argument(
     '--profile',
     default=None,
-    help="The file, in {0} format containing, a baking profile to use. The settings in the profile will override the command line arguments".format(
-        "YAML" if __yaml__ else "JSON"
-    )
+    help=("The file, in {0} format containing, a baking profile to use. The settings in the profile "
+          "will override the command line arguments").format("YAML" if __yaml__ else "JSON")
 )
 parser.add_argument(
     '--no-sourdough-correction',
     action='store_true',
-    help="When specified the calculations will not take into account the sourdough contribution to flour and water"
+    help=("When specified the calculations will not take into account the sourdough contribution to "
+          "flour and water")
 )
 
 
@@ -117,7 +119,7 @@ hydration = args.hydration if args.water is None else args.water / flour_total
 water = flour * hydration
 
 if hydration < 0.3:
-    print("Hydration is too low for any sensible baking. Hydration must alway be greater than 30%")
+    print("Hydration is too low for any sensible baking. Hydration must always be greater than 30%")
     sys.exit(1)
 
 # Take into account the flour and water contribution from the sourdough
