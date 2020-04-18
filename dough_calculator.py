@@ -1,10 +1,12 @@
 #!/usr/bin/env python3
-# eval "$(register-python-argcomplete ./dough_calculator.py)"
 
 from argparse import ArgumentParser
 from json import load as json_load
 from types import SimpleNamespace
 import sys
+
+# pip3 install jinja
+from jinja2 import Template, Environment, FileSystemLoader
 
 try:
     # pip3 install pyyaml
@@ -20,6 +22,18 @@ try:
 except ImportError:
     __argcomplete__ = False
 
+try:
+    # pip3 install colored
+    from colored import fg, attr
+    __colored__ = True
+except ImportError:
+    __colored__ = False
+    def fg(dummy):
+        return ""
+    def bg(dummy):
+        return ""
+    def attr(dummy):
+        return ""
 
 parser = ArgumentParser(description="Fab & Claire's Baker Calculator")
 parser.add_argument(
@@ -78,6 +92,10 @@ parser.add_argument(
           "will override the command line arguments").format("YAML" if __yaml__ else "JSON")
 )
 parser.add_argument(
+    '--templates',
+    help=("Directory that contains the templates used to build the output.")
+)
+parser.add_argument(
     '--no-sourdough-correction',
     action='store_true',
     help=("When specified the calculations will not take into account the sourdough contribution to "
@@ -90,17 +108,21 @@ args = parser.parse_args()
 
 # Default configuration values
 default_settings = {
-    'people': 1,
-    'portions': 1,
+    'args': {},
+    'fats': 0.0,
     'flour': 100,
     'hydration': 0.55,
-    'water': None,
-    'fats': 0.0,
-    'salt': 0.015,
-    'sourdough': 0.25,
-    'sourdough_hydration': 0.5,
-    'profile': None,
     'no_sourdough_correction': False,
+    'people': 1,
+    'portions': 1,
+    'profile': None,
+    'salt': 0.015,
+    'sourdough_hydration': 0.5,
+    'sourdough': 0.25,
+    'templates': "templates",
+    'water': None,
+    'title': "",
+    'notes': ""
 }
 
 # Holds the final configuration
@@ -160,6 +182,9 @@ portion_weight = total_weight / float(args.portions)
 rising_multiplier = 0.5 / args.sourdough if args.sourdough > 0.0 else 0.0
 
 data = {
+    "title": args.title,
+    "notes": args.notes,
+
     "conf_people": args.people,
     "conf_portions": args.portions,
 
@@ -179,36 +204,11 @@ data = {
 
     "portion_weight": round(portion_weight),
     "rising_multiplier": round(rising_multiplier, 2),
+
+    "extra": vars(args)
 }
 
-# Display result
-print("""
-  ~  Fab & Claire's Baker Calculator  ~
-
-Number of people..............: {conf_people}
-Number of portions............: {conf_portions}
-
-Selected quantities for one person:
-
-  Flour.......................: {single_flour:.0f}g
-  Hydration...................: {single_hydration:.0f}%
-  Sourdough...................: {single_sourdough:.0f}%
-  SD hydration................: {single_hydration:.0f}%
-  Salt........................: {single_salt:.1f}%
-  Fats........................: {single_fats:.0f}%
-
-Total amounts for {conf_people} person(s):
-
-  Flour.......................: {total_flour:.0f}g
-  Water.......................: {total_water:.0f}g
-  Sourdough...................: {total_sourdough:.0f}g
-  Fats........................: {total_fats:.0f}g
-  Salt........................: {total_salt:.1f}g
-
-Other information:
-
-  Total weight................: {total_weight:.0f}g
-  Portion weight..............: {portion_weight:.0f}g
-  Rising multiplier...........: {rising_multiplier:.1f}x""".format(**data))
-
-print("\nENJOY YOUR DOUGH!")
+environment = Environment(loader=FileSystemLoader(args.templates), trim_blocks=True)
+template = environment.get_template("main.j2")
+output = template.render(**data)
+print(output)

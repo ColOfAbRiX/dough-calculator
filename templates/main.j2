@@ -1,0 +1,41 @@
+
+    ~  Fab & Claire's Baker Calculator  ~
+{% if title != "" %}
+{{ title | upper | center(width=46) }}
+{% endif %}
+
+{% if conf_people > 1 %}
+Number of people....................: {{ conf_people }}
+Number of portions..................: {{ conf_portions }}
+
+{% endif %}
+Total amounts for {{ conf_people }} person(s):
+
+  Flour.............................: {{ total_flour | round | int }}g
+  Water.............................: {{ total_water | round | int }}g
+  Sourdough.........................: {{ total_sourdough | round | int }}g
+  Fats..............................: {{ total_fats | round | int }}g
+  Salt..............................: {{ total_salt | round(1) }}g
+  TOTAL WEIGHT......................: {{ total_weight | round | int }}g
+
+{% if notes != "" %}
+Notes:
+
+{{ notes | wordwrap(width=42) | indent(width=2, first=True) }}
+
+{% endif %}
+Selected quantities for ONE person:
+
+  Flour.............................: {{ single_flour | round | int }}g
+  Hydration.........................: {{ single_hydration | round | int }}%
+  Sourdough.........................: {{ single_sourdough | round | int }}%
+  SD hydration......................: {{ single_hydration | round | int }}%
+  Salt..............................: {{ single_salt | round(1) }}%
+  Fats..............................: {{ single_fats | round | int }}%
+  PORTION WEIGHT....................: {{ portion_weight | round | int }}g
+
+Other information:
+
+  Rising multiplier.................: {{ rising_multiplier | round(1) }}x
+
+ENJOY YOUR DOUGH!
