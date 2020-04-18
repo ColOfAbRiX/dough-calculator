@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+# eval "$(register-python-argcomplete ./dough_calculator.py)"
 
 from argparse import ArgumentParser
 from json import load as json_load
@@ -14,7 +15,6 @@ except ImportError:
 
 try:
     # pip3 install argcomplete
-    # eval "$(register-python-argcomplete ./dough_calculator.py)"
     import argcomplete
     __argcomplete__ = True
 except ImportError:

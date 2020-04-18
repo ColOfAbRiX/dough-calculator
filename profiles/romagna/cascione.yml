@@ -1,0 +1,15 @@
+---
+# Cascioni
+
+flour:     68
+hydration: 0.5
+fats:      0.18
+salt:      0.02
+sourdough: 0.0
+notes: |
+  Stretch smaller and thicker than normal piada
+fillings:
+  rosso:
+    tomato: 90
+    mozzarella: 30
+    cheddar: 15
