@@ -103,7 +103,7 @@ parser.add_argument(
           "flour and water")
 )
 parser.add_argument(
-    '--portion-weight',
+    '--set-portion',
     type=float,
     help=("Define the weight of a portion for for one person and adjust all other quantities")
 )
@@ -114,6 +114,7 @@ args = parser.parse_args()
 
 # Default configuration values
 default_settings = {
+    'set_portion': None,
     'args': {},
     'fats': 0.0,
     'flour': 100,
@@ -121,13 +122,12 @@ default_settings = {
     'no_sourdough_correction': False,
     'notes': "",
     'people': 1,
-    'portion_weight': None,
     'portions': 1,
     'profile': None,
     'salt': 0.015,
     'sourdough_hydration': 1.0,
     'sourdough': 0.25,
-    'templates': "templates",
+    'templates': "templates/default",
     'title': "",
     'water': None,
 }
@@ -186,9 +186,16 @@ total_weight = sourdough + water + flour + salt + fats
 portion_weight = total_weight / float(args.portions)
 
 # If a portion weight has been set, adjust the correction factor
-k = 1.0
-if args.portion_weight is not None:
-    k = args.portion_weight / portion_weight
+if args.set_portion is not None:
+    k = args.set_portion / portion_weight
+    args.flour *= k
+    fats *= k
+    flour *= k
+    portion_weight *= k
+    salt *= k
+    sourdough *= k
+    total_weight *= k
+    water *= k
 
 # Estimate the rising time of the dough compared to the sourdough
 rising_multiplier = 0.5 / args.sourdough if args.sourdough > 0.0 else 0.0
@@ -200,21 +207,21 @@ data = {
     "conf_people": args.people,
     "conf_portions": args.portions,
 
-    "single_flour": args.flour * k,
+    "single_flour": args.flour,
     "single_hydration": hydration * 100,
     "single_sourdough": args.sourdough * 100,
     "single_sourdough_hydration": args.sourdough_hydration * 100,
     "single_salt": args.salt * 100,
     "single_fats": args.fats * 100,
 
-    "total_flour": round(flour * k),
-    "total_water": round(water * k),
-    "total_sourdough": round(sourdough * k),
-    "total_fats": round(fats * k),
-    "total_salt": round(salt * k, 1),
-    "total_weight": total_weight * k,
+    "total_flour": round(flour),
+    "total_water": round(water),
+    "total_sourdough": round(sourdough),
+    "total_fats": round(fats),
+    "total_salt": round(salt, 1),
+    "total_weight": total_weight,
 
-    "portion_weight": round(portion_weight * k),
+    "portion_weight": round(portion_weight),
     "rising_multiplier": round(rising_multiplier, 2),
 
     "extra": vars(args)
