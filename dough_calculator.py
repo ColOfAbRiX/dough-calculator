@@ -83,7 +83,7 @@ parser.add_argument(
 parser.add_argument(
     '--sourdough-hydration',
     type=float,
-    help="The hydration of the sourdough itself. Default value: 0.50"
+    help="The hydration of the sourdough itself. Default value: 1.00"
 )
 
 parser.add_argument(
@@ -125,7 +125,7 @@ default_settings = {
     'portions': 1,
     'profile': None,
     'salt': 0.015,
-    'sourdough_hydration': 0.5,
+    'sourdough_hydration': 1.0,
     'sourdough': 0.25,
     'templates': "templates",
     'title': "",
@@ -172,8 +172,8 @@ if hydration < 0.3:
 
 # Take into account the flour and water contribution from the sourdough
 if not args.no_sourdough_correction:
-    flour /= (1 + args.sourdough * (1.0 - args.sourdough_hydration))
-    water -= sourdough * args.sourdough_hydration
+    flour -= sourdough / (1.0 + args.sourdough_hydration)
+    water -= sourdough - sourdough / (1.0 + args.sourdough_hydration)
 
 # On effects of fats on hydration:
 #   http://www.thefreshloaf.com/node/30743/where-does-oilhoney-and-sugar-fit-hydration-formulas
