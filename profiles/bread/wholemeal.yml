@@ -1,0 +1,10 @@
+---
+title:     'Wholemeal Bread #1'
+flour:     250
+flour_mix:
+  strong_white: 0.5
+  wholemeal:    0.5
+hydration: 0.7
+sourdough: 0.3
+salt:      0.015
+no_sourdough_correction: true

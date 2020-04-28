@@ -98,6 +98,7 @@ parser.add_argument(
 parser.add_argument(
     '--no-sourdough-correction',
     action='store_true',
+    default=None,
     help=("When specified the calculations will not take into account the sourdough contribution to "
           "flour and water")
 )

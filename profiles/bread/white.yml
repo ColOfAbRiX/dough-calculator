@@ -1,0 +1,9 @@
+---
+title:     'White Bread #1'
+flour:     250
+hydration: 0.6
+sourdough: 0.3
+salt:      0.015
+no_sourdough_correction: true
+notes: >
+  From "How to make bread - Sourdough Bread - p.87"
